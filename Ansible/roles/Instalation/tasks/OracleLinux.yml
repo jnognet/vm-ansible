@@ -145,6 +145,15 @@
   shell: 'git clone https://github.com/zsh-users/zsh-autosuggestions $HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions'
   when: not zshautosuggestions.stat.exists
 
+- name: checa .tmux
+  stat:
+    path: $HOME/.tmux
+  register: tmux
+
+- name: instala .tmux
+  shell: 'cd; git clone --single-branch https://github.com/gpakosz/.tmux.git; ln -s -f .tmux/.tmux.conf; cp .tmux/.tmux.conf.local .'
+  when: not tmux.stat.exists
+
 - name: Git checkout dotfiles
   ansible.builtin.git:
     repo: 'https://github.com/jnognet/dotfiles.git'
