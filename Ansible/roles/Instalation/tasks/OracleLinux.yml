@@ -148,7 +148,7 @@
   shell: 'git clone https://github.com/zsh-users/zsh-autosuggestions $HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions'
   when: not zshautosuggestions.stat.exists
 
-- name: Add repository for instala github cli
+- name: Add repository for install github cli
   become: true
   yum_repository:
     name: github
@@ -168,4 +168,10 @@
 - name: Git checkout dotfiles
   ansible.builtin.git:
     repo: 'https://github.com/jnognet/dotfiles.git'
-    dest: /home/vagrant
+    dest: /home/vagrant/dotfiles
+
+- name: copia arquivos do dotfiles
+  shell: 'cd /home/vagrant/dotfiles && find -maxdepth 1 -type f | xargs -n 1 basename | xargs -n 1 -I {} cp -f {} /home/vagrant/{}'
+
+- name: copia diretorios do dotfiles
+  shell: 'cd /home/vagrant/dotfiles && find -maxdepth 1 -type d -not -name ".git" -not -path "."  | xargs -n 1 basename | xargs -n 1 -I {} cp -fr {}  /home/vagrant/{}'
