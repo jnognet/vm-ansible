@@ -22,7 +22,7 @@
     name: wget
     state: present
 
-- name: instala nerd-fonts
+- name: habilita node 16
   become: true
   shell: 'sudo dnf module enable nodejs:16 -y' 
 
