@@ -169,15 +169,3 @@
   ansible.builtin.git:
     repo: 'https://github.com/jnognet/dotfiles.git'
     dest: /home/vagrant
-
-# - name: enable plugins
-#   lineinfile:
-#     path: ~/.zshrc
-#     regexp: '^plugins=\(git\)$'
-#     line: plugins=(git emoji history-substring-search	history	command-not-found zsh-interactive-cd zsh-autosuggestions zsh-syntax-highlighting vscode web-search jump encode64 copyfile dirhistory)
-
-# - name: put alias
-#   lineinfile:
-#     path: ~/.zshrc
-#     insertafter: '^# alias zshconfig.*'
-#     line: alias ntl="ls -laFrt --color=always | less"
