@@ -1,0 +1,183 @@
+---
+
+- assert:
+    that: ansible_facts['distribution_major_version']|int >= 8
+    fail_msg: "apenas para Oracle Linux >= 8"
+
+- name: Upgrade all packages
+  become: true
+  ansible.builtin.dnf:  
+    name: "*"
+    state: latest
+    update_cache: true
+
+- name: instala EPEL
+  become: true
+  dnf:
+    name: epel-release
+    state: present
+
+- name: instala tmux
+  become: true
+  dnf:
+    name: tmux
+    state: present
+
+- name: instala wget
+  become: true
+  dnf:
+    name: wget
+    state: present
+
+- name: instala nodejs
+  become: true
+  dnf:
+    name: nodejs
+    state: present
+
+- name: instala conky
+  become: true
+  dnf:
+    name: conky
+    state: present
+
+- name: instala neovim
+  become: true
+  dnf:
+    name: neovim
+    state: present
+
+- name: instala status-line/prompt
+  become: true
+  dnf:
+    name: powerline
+    state: present
+
+- name: instala Powerline symbol font
+  become: true
+  dnf:
+    name: powerline-fonts
+    state: present
+
+- name: instala fira-code-fonts
+  become: true
+  dnf:
+    name: fira-code-fonts
+    state: present
+
+- name: instala git
+  become: true
+  dnf:
+    name: git
+    state: present
+
+- name: instala fzf
+  become: true
+  dnf:
+    name: fzf
+    state: present
+
+- name: instala zsh
+  become: true
+  dnf:
+    name: zsh
+    state: present
+
+- name: checa Oh My Zsh
+  become: true
+  stat:
+    path: /home/vagrant/.oh-my-zsh
+  register: myzsh
+
+- name: instala Oh My Zsh
+  shell: 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"'
+  when: not myzsh.stat.exists
+
+- name: muda shell
+  become: true
+  shell: 'usermod -s /bin/zsh vagrant'
+
+- name: checa nerd-fonts
+  stat:
+    path: $HOME/nerd-fonts
+  register: nerdfonts
+
+- name: clona nerd-fonts
+  shell: 'git clone --depth=1 https://github.com/ryanoasis/nerd-fonts.git $HOME/nerd-fonts'
+  when: not nerdfonts.stat.exists
+
+- name: checa nerd-fonts installed
+  stat:
+    path: $HOME/nerd-fonts/installed
+  register: nerdfontsinst
+
+- name: instala nerd-fonts
+  shell: '$HOME/nerd-fonts/install.sh && touch $HOME/nerd-fonts/installed'
+  when: not nerdfontsinst.stat.exists
+
+- name: checa powerlevel10k
+  stat:
+    path: $HOME/.oh-my-zsh/custom/themes/powerlevel10k
+  register: powerlevel10k
+
+- name: instala powerlevel10k
+  shell: 'git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $HOME/.oh-my-zsh/custom/themes/powerlevel10k'
+  when: not powerlevel10k.stat.exists
+
+- name: enable powerlevel10k 
+  lineinfile:
+    path: ~/.zshrc
+    regexp: '^ZSH_THEME="robbyrussell"$'
+    line: ZSH_THEME="powerlevel10k/powerlevel10k"
+
+- name: checa zsh-syntax-highlighting
+  stat:
+    path: $HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+  register: zshsyntaxhighlighting
+
+- name: instala zsh-syntax-highlighting
+  shell: 'git clone https://github.com/zsh-users/zsh-syntax-highlighting.git $HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting'
+  when: not zshsyntaxhighlighting.stat.exists
+
+- name: checa zsh-autosuggestions
+  stat:
+    path: $HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+  register: zshautosuggestions
+
+- name: instala zsh-autosuggestions
+  shell: 'git clone https://github.com/zsh-users/zsh-autosuggestions $HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions'
+  when: not zshautosuggestions.stat.exists
+
+- name: Add repository for instala github cli
+  become: true
+  yum_repository:
+    name: github
+    description: Instala github cli
+    baseurl: https://cli.github.com/packages/rpm
+    gpgcheck: no
+    repo_gpgcheck: no
+    enabled: yes
+    skip_if_unavailable: no
+
+- name: instala gh
+  become: true
+  dnf:
+    name: gh
+    state: present
+
+- name: Git checkout dotfiles
+  ansible.builtin.git:
+    repo: 'https://github.com/jnognet/dotfiles.git'
+    dest: /home/vagrant
+
+# - name: enable plugins
+#   lineinfile:
+#     path: ~/.zshrc
+#     regexp: '^plugins=\(git\)$'
+#     line: plugins=(git emoji history-substring-search	history	command-not-found zsh-interactive-cd zsh-autosuggestions zsh-syntax-highlighting vscode web-search jump encode64 copyfile dirhistory)
+
+# - name: put alias
+#   lineinfile:
+#     path: ~/.zshrc
+#     insertafter: '^# alias zshconfig.*'
+#     line: alias ntl="ls -laFrt --color=always | less"
