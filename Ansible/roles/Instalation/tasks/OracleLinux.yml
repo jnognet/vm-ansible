@@ -4,13 +4,6 @@
     that: ansible_facts['distribution_major_version']|int >= 8
     fail_msg: "apenas para Oracle Linux >= 8"
 
-- name: Upgrade all packages
-  become: true
-  ansible.builtin.dnf:  
-    name: "*"
-    state: latest
-    update_cache: true
-
 - name: instala EPEL
   become: true
   dnf:
@@ -28,6 +21,10 @@
   dnf:
     name: wget
     state: present
+
+- name: instala nerd-fonts
+  become: true
+  shell: 'sudo dnf module enable nodejs:16 -y' 
 
 - name: instala nodejs
   become: true
@@ -148,6 +145,17 @@
   shell: 'git clone https://github.com/zsh-users/zsh-autosuggestions $HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions'
   when: not zshautosuggestions.stat.exists
 
+- name: Git checkout dotfiles
+  ansible.builtin.git:
+    repo: 'https://github.com/jnognet/dotfiles.git'
+    dest: /home/vagrant/dotfiles
+
+- name: copia arquivos do dotfiles
+  shell: 'cd /home/vagrant/dotfiles && find -maxdepth 1 -type f | xargs -n 1 basename | xargs -n 1 -I {} cp -f {} /home/vagrant/{}'
+
+- name: copia diretorios do dotfiles
+  shell: 'cd /home/vagrant/dotfiles && find -maxdepth 1 -type d -not -name ".git" -not -path "."  | xargs -n 1 basename | xargs -n 1 -I {} cp -fr {}  /home/vagrant/{}'
+
 - name: Add repository for install github cli
   become: true
   yum_repository:
@@ -165,13 +173,32 @@
     name: gh
     state: present
 
-- name: Git checkout dotfiles
-  ansible.builtin.git:
-    repo: 'https://github.com/jnognet/dotfiles.git'
-    dest: /home/vagrant/dotfiles
+- name: Add repository for install docker
+  become: true
+  yum_repository:
+    name: docker
+    description: Instala docker
+    baseurl: https://download.docker.com/linux/centos/8/x86_64/stable/
+    gpgcheck: no
+    repo_gpgcheck: no
+    enabled: yes
+    skip_if_unavailable: no
 
-- name: copia arquivos do dotfiles
-  shell: 'cd /home/vagrant/dotfiles && find -maxdepth 1 -type f | xargs -n 1 basename | xargs -n 1 -I {} cp -f {} /home/vagrant/{}'
+- name: instala docker-ce
+  become: true
+  dnf:
+    name: docker-ce
+    state: present
 
-- name: copia diretorios do dotfiles
-  shell: 'cd /home/vagrant/dotfiles && find -maxdepth 1 -type d -not -name ".git" -not -path "."  | xargs -n 1 basename | xargs -n 1 -I {} cp -fr {}  /home/vagrant/{}'
+- name: Ensure docker service is started
+  become: true
+  service:
+    name: docker
+    state: started
+
+- name: Upgrade all packages
+  become: true
+  ansible.builtin.dnf:  
+    name: "*"
+    state: latest
+    update_cache: true
