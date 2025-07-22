@@ -211,3 +211,7 @@
     name: "*"
     state: latest
     update_cache: true
+
+- name: muda timezone
+  become: true
+  shell: 'timedatectl set-timezone America/Rio_Branco'
